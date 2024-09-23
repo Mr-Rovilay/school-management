@@ -1,3 +1,7 @@
+import { currentUser } from "@clerk/nextjs/server";
+import Image from "next/image";
+import Link from "next/link";
+
 const menuItems = [
   {
     title: "MENU",
@@ -113,26 +117,34 @@ const menuItems = [
   },
 ];
 
-import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react'
-
-const Menu = () => {
+const Menu = async () => {
+  const user = await currentUser();
+  const role = user?.publicMetadata.role as string;
   return (
-    <div className='mt-4 text-sm'>
-      {menuItems.map((m, index) => (
-        <div key={m.title} className='flex flex-col px-3'>
-          <span className='hidden lg:block text-xs text-gray-400 my-4 font-light '>{m.title}</span>      
-            {m.items.map((item) => (
-              <Link key={item.label } href={item.href} className='flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 hover:bg-lamaSkyLight rounded-md'>
-                <Image src={item.icon} alt={item.label} width={20} height={20}/>
-                <span className='hidden lg:block'>{item.label}</span>
-              </Link>
-            ))}
-      </div>     
+    <div className="mt-4 text-sm">
+      {menuItems.map((i) => (
+        <div className="flex flex-col gap-2" key={i.title}>
+          <span className="hidden lg:block text-gray-400 font-light my-4">
+            {i.title}
+          </span>
+          {i.items.map((item) => {
+            if (item.visible.includes(role)) {
+              return (
+                <Link
+                  href={item.href}
+                  key={item.label}
+                  className="flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-lamaSkyLight"
+                >
+                  <Image src={item.icon} alt="" width={20} height={20} />
+                  <span className="hidden lg:block">{item.label}</span>
+                </Link>
+              );
+            }
+          })}
+        </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default Menu
+export default Menu;
