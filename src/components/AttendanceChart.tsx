@@ -1,71 +1,56 @@
+"use client";
 import Image from "next/image";
-import AttendanceChart from "./AttendanceChart";
-import prisma from "@/lib/prisma";
+import {
+  BarChart,
+  Bar,
+  Rectangle,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-const AttendanceChartContainer = async () => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-  const lastMonday = new Date(today);
-
-  lastMonday.setDate(today.getDate() - daysSinceMonday);
-
-  const resData = await prisma.attendance.findMany({
-    where: {
-      date: {
-        gte: lastMonday,
-      },
-    },
-    select: {
-      date: true,
-      present: true,
-    },
-  });
-
-  // console.log(data)
-
-  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-
-  const attendanceMap: { [key: string]: { present: number; absent: number } } =
-    {
-      Mon: { present: 0, absent: 0 },
-      Tue: { present: 0, absent: 0 },
-      Wed: { present: 0, absent: 0 },
-      Thu: { present: 0, absent: 0 },
-      Fri: { present: 0, absent: 0 },
-    };
-
-  resData.forEach((item) => {
-    const itemDate = new Date(item.date);
-    const dayOfWeek = itemDate.getDay();
-    
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-      const dayName = daysOfWeek[dayOfWeek - 1];
-
-      if (item.present) {
-        attendanceMap[dayName].present += 1;
-      } else {
-        attendanceMap[dayName].absent += 1;
-      }
-    }
-  });
-
-  const data = daysOfWeek.map((day) => ({
-    name: day,
-    present: attendanceMap[day].present,
-    absent: attendanceMap[day].absent,
-  }));
-
+const AttendanceChart = ({
+  data,
+}: {
+  data: { name: string; present: number; absent: number }[];
+}) => {
   return (
-    <div className="bg-white rounded-lg p-4 h-full">
-      <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold">Attendance</h1>
-        <Image src="/moreDark.png" alt="" width={20} height={20} />
-      </div>
-      <AttendanceChart data={data}/>
-    </div>
+    <ResponsiveContainer width="100%" height="90%">
+      <BarChart width={500} height={300} data={data} barSize={20}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ddd" />
+        <XAxis
+          dataKey="name"
+          axisLine={false}
+          tick={{ fill: "#d1d5db" }}
+          tickLine={false}
+        />
+        <YAxis axisLine={false} tick={{ fill: "#d1d5db" }} tickLine={false} />
+        <Tooltip
+          contentStyle={{ borderRadius: "10px", borderColor: "lightgray" }}
+        />
+        <Legend
+          align="left"
+          verticalAlign="top"
+          wrapperStyle={{ paddingTop: "20px", paddingBottom: "40px" }}
+        />
+        <Bar
+          dataKey="present"
+          fill="#FAE27C"
+          legendType="circle"
+          radius={[10, 10, 0, 0]}
+        />
+        <Bar
+          dataKey="absent"
+          fill="#C3EBFA"
+          legendType="circle"
+          radius={[10, 10, 0, 0]}
+        />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
-export default AttendanceChartContainer;
+export default AttendanceChart;
